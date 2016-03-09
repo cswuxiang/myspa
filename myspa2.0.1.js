@@ -1,5 +1,5 @@
 /**
- * myspa2.0升级版 spa 2.0.1
+ * spa2.0升级版 spa 2.0.1
  * @author lowinwu
  */
 define(function(require,exports,module){
@@ -120,8 +120,7 @@ define(function(require,exports,module){
    * 默认路由
    */
   var defaultUIOptions = {
-    id: '',                               //路由名，注入点
-    animate: '',                          //切换动画
+    path: '',                               //路由名，注入点
     script:'',  
     isAutoShow:true,                      //是否默认显示出来，默认显示
     init: function() {},                  //初始化回调函数
@@ -164,12 +163,6 @@ define(function(require,exports,module){
       firemothod(module,"afterclose",arguments);
   });
   
-     /**
-     * 对zepto的ajax进行二次统一封装处理,支持单页面操作
-     * 传入的参数(配置对象)中，fileds为请求所需参数的字段名，读取后与data对象合并后发送
-     * $.SPA(cfg);
-     * todo 调用失败会如何 done放在sucess函数中，进行注册
-     */
     $.SPA = $.extend(SPA,{
         //注册源
     	routers:{},
@@ -197,12 +190,60 @@ define(function(require,exports,module){
     		
     	},
     	//
+    	innerBoot:function(path,arg){
+    		var uiModule = this.getBootRouter(path);
+                
+            var curPage = this._curentHash;
+            //load module
+            if(uiModule['script']){
+                seajs.use([uiModule['script']],function(module){
+                    
+                    if(!module) return ;
+                    //更新router
+                    $.SPA.r($.extend({path:path},module));
+                    
+                    //1 注册上view ,2 运行init方法 3、传参数 4 自动隐藏当前节点
+                    SPA.emit('beforeinit',module,arg);
+                    
+                    //处理模块属性问题 title class等
+                    $.SPA.changeView(path,module);
+                    $.SPA.changeClass(path,module);
+                    $.SPA.changeTitle(path,module);
+                    //insert animate
+                    
+                    if(uiModule.animate) {
+                        transitPage($("#"+path), $("#"+curPage), uiModule.animate, function(){
+                            module.init.call(module,$("#"+path),arg);
+                        })
+                    }else{
+                        module.init.call(module,$("#"+path),arg);
+                    }
+                    
+                    SPA.emit('afterinit',module,arg);
+                    
+                    //保存当前路由
+                    $.SPA.signLocaton({state:{path:path},type:true});
+                });
+            }else{
+                alert('无对应路由：' + uiModule['script']);
+            }
+            
+            //store arg
+            if(arg && arg.length > 0){
+                  SPA.Store.setItem(qs + "_" + uiModule['script'],arg);
+            }
+    		
+    	},
     	boot:function(path){
     		var uiModule = this.getBootRouter(path);
-    		   var  arg = Array.prototype.slice.call(arguments);
+    		  arg = Array.prototype.slice.call(arguments);
             arg.splice(0,1);
+            
             //value from session
-    		this.startRun(uiModule,arg);
+            if(arg && arg.length == 0){
+                arg = SPA.Store.getItem(qs+"_"+uiModule['script'])
+            }
+    		 this.startRun(uiModule,arg);
     	},
     	
     	//1/在本身页面上,2#取页面上元素html 3,取线上html; 隐藏页面其它view
@@ -283,26 +324,20 @@ define(function(require,exports,module){
         },
     	//注册
     	regRouter : function(path,type){
-            
-        	if(path == "index"){//回退首页面
-                location.hash = "#"+path;
+            //回退首页面
+        	if(path == "index"){
                 if(this._curentHash){ //刷新url中包含hash
                    if(path !== this._curentHash){
                 	   $.SPA.hashWrite = true;//不要触发hashchange中事件渲染
                    }
                 }
+                
         	}else if(type){
         		if(location.hash !== "#"+path){
             		location.hash = "#"+path;
             		$.SPA.hashWrite = true;
         		}
         	}
-            //注册
-            if(!$.SPA.routers[path]){
-                $.SPA.routers[path] = func;
-            }
-            
-            
         },
      
         // $.SPA.signLocaton({state:{path:pathName},func:func});
@@ -327,93 +362,47 @@ define(function(require,exports,module){
         },
         //enter fire
         innerRun:function(request,arg){
-        	 if($.isPlainObject(request)){
-                  $.SPA.innerBoot(request,arg);
+        	 if($.isFunction(request)){
+                  request()
+             }else if($.isPlainObject(request)){
+                  $.SPA.innerBoot(request["path"],arg);
              }
-        },
-        innerBoot:function(uiModule,arg){
-             
-            arg = arg || SPA.Store.getItem(qs+"_"+uiModule['script'])
-        	
-            var curPage = this._curentHash;
-                 path  = uiModule.path;
-            //load module
-            if(uiModule['script']){
-                seajs.use([uiModule['script']],function(module){
-                    
-                    if(!module) return ;
-                    //更新router
-                    $.SPA.r($.extend({path:path},module));
-                    
-                    //1 注册上view ,2 运行init方法 3、传参数 4 自动隐藏当前节点
-                    SPA.emit('beforeinit',module,arg);
-                    
-                    //处理模块属性问题 title class等
-                    $.SPA.changeView(path,module);
-                    $.SPA.changeClass(path,module);
-                    $.SPA.changeTitle(path,module);
-                    //insert animate
-                    
-                    if(uiModule.animate) {
-                        transitPage($("#"+path), $("#"+curPage), uiModule.animate, function(){
-                            module.init.call(module,$("#"+path),arg);
-                        })
-                    }else{
-                        module.init.call(module,$("#"+path),arg);
-                    }
-                    
-                    SPA.emit('afterinit',module,arg);
-                    
-                    //保存当前路由
-                    $.SPA.signLocaton({state:{path:path},type:true});
-                });
-            }else{
-                alert('无对应路由：' + uiModule['script']);
-            }
-            
-            //store arg
-            if(arg && arg.length > 0){
-                  SPA.Store.setItem(qs + "_" + uiModule['script'],arg);
-            }
-        	
         },
         //outer fier
         outerRun:function(lstRequest,curRequest){
-        
         	if($.isPlainObject(lstRequest) || $.isPlainObject(curRequest)){
-        		  if(lstRequest.path != curRequest.path){
-        		      SPA.emit('beforeclose',lstRequest,curRequest);
-        		      SPA.emit('afterclose',lstRequest,curRequest);
-        		  }
+        		  SPA.emit('beforeclose',lstRequest,curRequest);
+        		  SPA.emit('afterclose',lstRequest,curRequest);
             }
         },
-        startRun:function(runRequest,arg){
-        	
-        	 
-        	 var runRequest = runRequest || $.SPA.getRunModule();
-        	 if(runRequest.path != this._curentHash){//避免重复请求
+        startRun:function(curRequest,arg){
+        	 var curRequest = curRequest || $.SPA.getRunModule();
+        	 var lstRequest = $.SPA.getRunModule(this._curentHash);
+        	 if(this._curentHash != curRequest.path){//避免重复请求
+        	    
+        	    this.outerRun(lstRequest,curRequest);
+        	    
         	    if($.SPA.isStart){
-                     this._startRouter(runRequest,arg);
+                     this._startRouter(curRequest,arg);
                 }
         	 }
         	 
         	 //第一次启动，刷新处理
         	 if(!$.SPA.isStart){
         	 	$.SPA.isStart = true;
-                this._startRouter(runRequest,arg);
+                this._startRouter(curRequest,arg);
         	 }
         },
         _startRouter:function(curRequest,arg){
         	 if(!curRequest) return ;
-        	
-        	 var lstRequest = $.SPA.getRunModule(this._curentHash);
-        	 this.outerRun(lstRequest,curRequest);
-             
-             this.innerRun(curRequest,arg);
+        	 curRequest.isclose = typeof curRequest.isclose =='undefined' ? false : !!curRequest.isclose;
+             if(!curRequest.isclose){
+                this.innerRun(curRequest,arg);
+             }
         },
         //初化化路由
         // 1,设置当前url根目录
-        initRun:function(options){
+        initRun:function(options,arg){
         	options =  options || {};
         	this.rootPath = options.rootPath;
         	this.defaultRouter = options.defaultRouter;
@@ -437,7 +426,6 @@ define(function(require,exports,module){
                script: this.rootPath+"/"+this.defaultRouter+".js"
             });
             //加载运行
-            
             this.startRun();
             
             $.SPA.isStart = true;
@@ -456,35 +444,16 @@ define(function(require,exports,module){
         //back request,save before data and excute,mobile refesh can excute onpopstate
         //no support propstate,apply onhashchage
         monitorRouter:function(){
-        	
-        	if(isSupportPopState()){
-                //mobile,页面进入会激活触发,
-                window.onpopstate = function(ev){
-                    //返回首页面,todo:可能需要存储的功能 done:采用首页面注册解决
-                    if(!ev.state){
-                        var type = $.getParameter(qs)|| 'index';
-                        $.SPA.routers[type]&&$.SPA.routers[type]();
-                    }else if(ev.state.path){ //ajax回退处理
-                    	
-                        var path = ev.state.path,request = $.SPA.routers[path];
-                        if(typeof request == 'function'){
-                            request(ev.state["data"]);
-                            
-                        }
-                    }
-                }
-            }else{//hashchange事件在当前页面URL中的hash值发生改变时触发
-            	  //解决调回时，不发生触发
-            	  this._saveCurentHash();
-            	  //监听触发
-                  window.onhashchange = function(){
-                       if($.SPA.hashWrite){//写的操作引起change
-                            $.SPA.hashWrite = false;
-                       }else{//回退的操作
-                            $.SPA.startRun();
-                       }
-                 };
-            }
+        	  //解决调回时，不发生触发
+        	  this._saveCurentHash();
+        	  //监听触发
+              window.onhashchange = function(){
+                   if($.SPA.hashWrite){//写的操作引起change
+                        $.SPA.hashWrite = false;
+                   }else{//回退的操作
+                        $.SPA.startRun();
+                   }
+             };
         }
     });
     
