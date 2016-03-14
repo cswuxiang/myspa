@@ -8,18 +8,13 @@ define(function(require,exports,module){
     var i18n = require("../../mod/global/i18n.js");
     var global = window,
         SPA = {isStart:false},
-        qs = "q_spa",
+        qs = "q_myspa",
         rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/;
    
   
     
     function uniqueId() {
       return (new Date).getTime()
-    }
-    
-    function isSupportPopState(){
-    	return false;
-    	return !!window.history.pushState;
     }
     
     //sessionStorage 保存临时数据
@@ -53,7 +48,7 @@ define(function(require,exports,module){
     
    
    //移除綁定事件
-    var ZeptEvenNames = ['swipe', 'swipeLeft', 'swipeRight', 'swipeUp', 'swipeDown',
+    var ZeptEvenNames = ['input','swipe', 'swipeLeft', 'swipeRight', 'swipeUp', 'swipeDown',
     'doubleTap', 'tap', 'singleTap', 'longTap','focusin','focusout','focus','blur','load','resize','scroll','unload',
     'click','dblclick','mousedown','mouseup','mousemove','mouseover','mouseout','mouseenter','mouseleave',
   'change','select','keydown','keypress','keyup','error'].join(" ");
@@ -303,6 +298,7 @@ define(function(require,exports,module){
         		isAutoShow && $(".view-container").removeClass("hide");
         	}else{
         	    isAutoShow && $("#"+id).removeClass("hide");
+        	    this.clearData(this.getAllNodes($("#"+id)));
         	}
         },
         showApp:function(){
