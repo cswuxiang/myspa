@@ -5,7 +5,7 @@
 define(function(require,exports,module){
     //引用整个应用依赖的模块
      //国际化
-    var i18n = require("../../mod/global/i18n.js");
+    var i18n = require("./i18n.js");
     var global = window,
         SPA = {isStart:false},
         qs = "q_myspa",
