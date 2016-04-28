@@ -1,125 +1,42 @@
 /**
- * spa2.0å‡çº§ç‰ˆ spa 2.0.1
+ * myspa2.0Éı¼¶°æ myspa 2.0.1
  * @author lowinwu
  */
 define(function(require,exports,module){
-    //å¼•ç”¨æ•´ä¸ªåº”ç”¨ä¾èµ–çš„æ¨¡å—
-     //å›½é™…åŒ–
-    var i18n = require("./i18n.js");
-    var global = window,
-        SPA = {isStart:false},
-        qs = "q_myspa",
-        rquickExpr = /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/;
+	
+	var mystore = require("./mystore.js"),
+	    myEvent = require("./myevent.js");
+    //ÒıÓÃÕû¸öÓ¦ÓÃÒÀÀµµÄÄ£¿é
+     //¹ú¼Ê»¯
+    var i18n,
+        global     =  window,
+        myspa      =  {isStart:false},
+        qs         =    "q_mymyspa",
+        rquickExpr =  /^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/;
    
-  
-    
-    function uniqueId() {
-      return (new Date).getTime()
-    }
-    
-    //sessionStorage ä¿å­˜ä¸´æ—¶æ•°æ®
-    var Store = {
-
-        getStorage : function() {
-            return window.sessionStorage;
-        },
-
-        getItem : function(key) {
-            var val = this.getStorage().getItem(key);
-            return JSON.parse(val);
-        },
-        setItem : function(key, value) {
-            value = JSON.stringify(value);
-            try {
-                this.getStorage().setItem(key, value);
-            } catch (oException) {
-                if (oException.name == 'QuotaExceededError') {
-                    console.log('å·²ç»è¶…å‡ºæœ¬åœ°å­˜å‚¨é™å®šå¤§å°ï¼');
-                    // å¯è¿›è¡Œè¶…å‡ºé™å®šå¤§å°ä¹‹åçš„æ“ä½œï¼Œå¦‚ä¸‹é¢å¯ä»¥å…ˆæ¸…é™¤è®°å½•ï¼Œå†æ¬¡ä¿å­˜
-                    Storage.getStorage().clear();
-                    Storage.setItem(key, value);
-                }
-            }
-        }
-        
-    };
-    
-    SPA.Store = Store;
-    
    
-   //ç§»é™¤ç¶å®šäº‹ä»¶
+   //ÒÆ³ı½‰¶¨ÊÂ¼ş
     var ZeptEvenNames = ['input','swipe', 'swipeLeft', 'swipeRight', 'swipeUp', 'swipeDown',
     'doubleTap', 'tap', 'singleTap', 'longTap','focusin','focusout','focus','blur','load','resize','scroll','unload',
     'click','dblclick','mousedown','mouseup','mousemove','mouseover','mouseout','mouseenter','mouseleave',
   'change','select','keydown','keypress','keyup','error'].join(" ");
     
-  //æ¶ˆæ¯äº‹ä»¶
-  var myEvent = {
-    
-     msg:{},
-     
-     on:function(type,fn,target,id,params,context){
-        
-        if(target){
-            $(".view-container").delegate(target,type,fn); 
-            return ;
-        }
-        
-        this.msg[type] = this.msg[type] || [];
-        this.msg[type].push({
-            id    : id ? id : uniqueId(),
-            target:target,
-            fn:fn,
-            params:params,
-            context:context
-        });
-       return $.SPA
-     },
-     off:function(type, id){
-        var __Msgs = this.msg;
-        if (!id) { //æ²¡æœ‰id,åˆ™åˆ é™¤äº‹ä»¶åç§°ä¸‹æ‰€æœ‰å¤„ç†å‡½æ•°
-            delete __Msgs[type];
-        } else {
-            var _o = __Msgs[type] || [];
-            for (var i in _o) {
-                if (_o[i].id == id) {
-                    _o.splice(i--, 1);
-                    break;
-                }
-            }
-        }
-        return this;
-     },
-     emit:function(type){
-        
-         return function(center, args, queue, reValue, guid, o) {
-              var queue = center[type]||[];
-              for (var i = 0, j = queue.length; i < j; i++) {
-                  o = queue[i];
-                  o.fn && o.fn.apply(o.target, args);
-              }
-            
-         }(myEvent.msg, Array.prototype.slice.call(arguments, 1));
-        
-     }
-  };
+ 
   
-  //SPA.myEvent = myEvent;
-  
-  $.extend(SPA,myEvent);
+  myspa.myEvent = myEvent;
    
   /*
-   * é»˜è®¤è·¯ç”±
+   * Ä¬ÈÏÂ·ÓÉ
    */
   var defaultUIOptions = {
-    path: '',                               //è·¯ç”±åï¼Œæ³¨å…¥ç‚¹
+    path: '',                               //Â·ÓÉÃû£¬×¢Èëµã
     script:'',  
-    isAutoShow:true,                      //æ˜¯å¦é»˜è®¤æ˜¾ç¤ºå‡ºæ¥ï¼Œé»˜è®¤æ˜¾ç¤º
-    init: function() {},                  //åˆå§‹åŒ–å›è°ƒå‡½æ•°
-    beforeinit: function() {},            //æ‰“å¼€å‰å›è°ƒ
-    afterinit: function() {},             //æ‰“å¼€åå›è°ƒ
-    beforeclose: function() {},           //å…³é—­å‰å›è°ƒ
-    afterclose: function() {}             //å…³é—­åå›è°ƒ
+    isAutoShow:true,                      //ÊÇ·ñÄ¬ÈÏÏÔÊ¾³öÀ´£¬Ä¬ÈÏÏÔÊ¾
+    init: function() {},                  //³õÊ¼»¯»Øµ÷º¯Êı
+    beforeinit: function() {},            //´ò¿ªÇ°»Øµ÷
+    afterinit: function() {},             //´ò¿ªºó»Øµ÷
+    beforeclose: function() {},           //¹Ø±ÕÇ°»Øµ÷
+    afterclose: function() {}             //¹Ø±Õºó»Øµ÷
   }
   
   
@@ -131,37 +48,37 @@ define(function(require,exports,module){
       }
   }
   
-  //å¢åŠ é¢å¤–é€»è¾‘ï¼šå¦‚é¡µé¢åˆ‡æ¢
-  SPA.on("beforeinit",function(module){
+  //Ôö¼Ó¶îÍâÂß¼­£ºÈçÒ³ÃæÇĞ»»
+  myEvent.on("beforeinit",function(module){
       firemothod(module,"beforeinit",arguments);
   });
   
-   SPA.on("init",function(module){
-     //å¤„ç†å±æ€§é—®é¢˜
-     $.SPA.changeClass(module.path,module);
-     $.SPA.changeTitle(module.path,module);
-     $.SPA.changeView(module.path,module);
+   myEvent.on("init",function(module){
+     //´¦ÀíÊôĞÔÎÊÌâ
+     myspa.changeClass(module.path,module);
+     myspa.changeTitle(module.path,module);
+     myspa.changeView(module.path,module);
   });
   
-  SPA.on("afterinit",function(module){
+  myEvent.on("afterinit",function(module){
        firemothod(module,"afterinit",arguments);
   });
   
-  SPA.on("beforeclose",function(module){
+  myEvent.on("beforeclose",function(module){
       firemothod(module,"beforeclose",arguments);
   });
   
-  SPA.on("afterclose",function(module){
+  myEvent.on("afterclose",function(module){
       firemothod(module,"afterclose",arguments);
   });
   
  
   
-    $.SPA = $.extend(SPA,{
-        //æ³¨å†Œæº
+    var myspa = $.extend(myspa,{
+        //×¢²áÔ´
         routers:{},
         
-        _curentHash:'',//ä¿å­˜å½“å‰hash
+        _curentHash:'',//±£´æµ±Ç°hash
         
         _saveCurentHash:function(){
             this._curentHash = location.hash && location.hash.replace("#","");
@@ -170,15 +87,15 @@ define(function(require,exports,module){
             var args = Array.prototype.slice.call(arguments, 1)
             if(args.length > 1) {
               $.each(args, function(i, panel) {
-                $.SPA.r(panel)
+                myspa.r(panel)
               })
               return false
             }
             if(options.path) {
-                if($.SPA.routers[options.path]){//æ›´æ–°
-                    $.SPA.routers[options.path] = $.extend($.SPA.routers[options.path], options);
+                if(myspa.routers[options.path]){//¸üĞÂ
+                    myspa.routers[options.path] = $.extend(myspa.routers[options.path], options);
                 }else{
-                    $.SPA.routers[options.path] = $.extend({}, defaultUIOptions, options);
+                    myspa.routers[options.path] = $.extend({}, defaultUIOptions, options);
                 }
             }
             
@@ -193,16 +110,16 @@ define(function(require,exports,module){
                 seajs.use([uiModule['script']],function(module){
                     
                     if(!module) return ;
-                    //æ›´æ–°router
-                    $.SPA.r($.extend({path:path},module));
+                    //¸üĞÂrouter
+                    myspa.r($.extend({path:path},module));
                     
-                    //1 æ³¨å†Œä¸Šview ,2 è¿è¡Œinitæ–¹æ³• 3ã€ä¼ å‚æ•° 4 è‡ªåŠ¨éšè—å½“å‰èŠ‚ç‚¹
-                    SPA.emit('beforeinit',module,arg);
+                    //1 ×¢²áÉÏview ,2 ÔËĞĞinit·½·¨ 3¡¢´«²ÎÊı 4 ×Ô¶¯Òş²Øµ±Ç°½Úµã
+                    myEvent.emit('beforeinit',module,arg);
                     
-                    //å¤„ç†æ¨¡å—å±æ€§é—®é¢˜ title classç­‰
-                    $.SPA.changeView(path,module);
-                    $.SPA.changeClass(path,module);
-                    $.SPA.changeTitle(path,module);
+                    //´¦ÀíÄ£¿éÊôĞÔÎÊÌâ title classµÈ
+                    myspa.changeView(path,module);
+                    myspa.changeClass(path,module);
+                    myspa.changeTitle(path,module);
                     //insert animate
                     
                     if(uiModule.animate) {
@@ -213,51 +130,51 @@ define(function(require,exports,module){
                         module.init.call(module,$("#"+path),arg);
                     }
                     
-                    SPA.emit('afterinit',module,arg);
+                    myEvent.emit('afterinit',module,arg);
                     
-                    //ä¿å­˜å½“å‰è·¯ç”±
-                    $.SPA.signLocaton({state:{path:path},type:true});
+                    //±£´æµ±Ç°Â·ÓÉ
+                    myspa.signLocaton({state:{path:path},type:true});
                 });
             }else{
-                alert('æ— å¯¹åº”è·¯ç”±ï¼š' + uiModule['script']);
+                alert('ÎŞ¶ÔÓ¦Â·ÓÉ£º' + uiModule['script']);
             }
             
             //store arg
             if(arg && arg.length > 0){
-                  SPA.Store.setItem(qs + "_" + uiModule['script'],arg);
+                  mystore.setItem(qs + "_" + uiModule['script'],arg);
             }
             
         },
         boot:function(path){
-            var uiModule = this.getBootRouter(path);
+            var uiModule = myspa.getBootRouter(path);
               arg = Array.prototype.slice.call(arguments);
             arg.splice(0,1);
             
             //value from session
             if(arg && arg.length == 0){
-                arg = SPA.Store.getItem(qs+"_"+uiModule['script'])
+                arg = mystore.getItem(qs+"_"+uiModule['script'])
             }
-             this.startRun(uiModule,arg);
+             myspa.startRun(uiModule,arg);
         },
         
-        //1/åœ¨æœ¬èº«é¡µé¢ä¸Š,2#å–é¡µé¢ä¸Šå…ƒç´ html 3,å–çº¿ä¸Šhtml; éšè—é¡µé¢å…¶å®ƒview
+        //1/ÔÚ±¾ÉíÒ³ÃæÉÏ,2#È¡Ò³ÃæÉÏÔªËØhtml 3,È¡ÏßÉÏhtml; Òş²ØÒ³ÃæÆäËüview
         injectView:function(id,html){
             if(!html)return;
             var matchs = html.match(/^#(\w*)/);
             if(matchs && matchs.length == 2){
-                if(matchs[1] == id){//åœ¨æœ¬èº«é¡µé¢ä¸Š
+                if(matchs[1] == id){//ÔÚ±¾ÉíÒ³ÃæÉÏ
                     this.setHtml(null,$("#"+id).html());
-                }else if(!rquickExpr.exec(html)){//å–é¡µé¢ä¸Šå…ƒç´ html
+                }else if(!rquickExpr.exec(html)){//È¡Ò³ÃæÉÏÔªËØhtml
                     html = $(html).html();
                 }
             }else{
                 this.setHtml(id,html);
             }
         },
-        //å»æ‰ç¼“å­˜çš„äº‹ä»¶ä»¥åŠä¸Šé¢ç¼“å­˜æ•°æ®
+        //È¥µô»º´æµÄÊÂ¼şÒÔ¼°ÉÏÃæ»º´æÊı¾İ
         clearData:function(elems){
             elems = elems || [];
-            //å»é™¤äº‹ä»¶
+            //È¥³ıÊÂ¼ş
             for ( var i = 0, elem; (elem = elems[i]) != null; i++ ) {
                 $.event&&$.event.remove&&$.event.remove(elem,ZeptEvenNames);
             }
@@ -265,15 +182,15 @@ define(function(require,exports,module){
         getAllNodes:function(view){
             return view&&view[0]&&view[0].getElementsByTagName("*")
         },
-        //è®¾ç½®html
+        //ÉèÖÃhtml
         setHtml:function(id,html){
-            //é»˜è®¤åœ¨view-containerä¸Šï¼Œç»Ÿä¸€åœ¨ä¸€ä¸ªèŠ‚ç‚¹ä¸Šï¼Œåˆ©äºå¼€å‘æ—¶ï¼Œåœ¨é¦–é¡µåŠ èŠ‚ç‚¹d
+            //Ä¬ÈÏÔÚview-containerÉÏ£¬Í³Ò»ÔÚÒ»¸ö½ÚµãÉÏ£¬ÀûÓÚ¿ª·¢Ê±£¬ÔÚÊ×Ò³¼Ó½Úµãd
             var viewContainer = $("#"+id);
             var view = viewContainer.length == 0 ? $(".view-container") : viewContainer;
-            //æ¸…äº‹ä»¶
+            //ÇåÊÂ¼ş
             this.clearData(this.getAllNodes(view));
-            //æ³¨å…¥
-            view.html(i18n.processString(html));
+            //×¢Èë
+            view.html(i18n?i18n.processString(html):html);
         },
         changeView:function(id,module){
             this.hideAllView(module);
@@ -281,7 +198,7 @@ define(function(require,exports,module){
             this.showView(id,module);
         },
         hideAllView:function(){
-            var lstRequest = $.SPA.getRunModule(this._curentHash);
+            var lstRequest = myspa.getRunModule(this._curentHash);
             var lstViewDom = $("#"+lstRequest.path);
             if(lstRequest && lstViewDom.length > 0){
                 lstRequest.hideView = typeof(lstRequest.hideView) == "undefined" ? true : !!lstRequest.hideView;
@@ -292,7 +209,7 @@ define(function(require,exports,module){
             $(".view-container").addClass("hide");
         },
         showView :function(id,module){
-            //é»˜è®¤ä¸ºfalse
+            //Ä¬ÈÏÎªfalse
             var isAutoShow = typeof(module.isAutoShow) == "undefined" ? true : !!module.isAutoShow;
             if($("#"+id).length == 0){
                 isAutoShow && $(".view-container").removeClass("hide");
@@ -305,55 +222,56 @@ define(function(require,exports,module){
             $(".view-container").removeClass("hide");
         },
         changeClass:function(id,module){
-             module.bodyClass && $("body").removeAttr("class").addClass(module.bodyClass + " " + i18n.getApplang());
+            module.bodyClass && $("body").removeAttr("class").addClass(module.bodyClass + " " + (i18n?i18n.getApplang():""));
         },
         changeTitle:function(id,module){
             if(module.title){
                 var $body = $('body');  
                 document.title =  module.title;
-                 // hackåœ¨å¾®ä¿¡ç­‰webviewä¸­æ— æ³•ä¿®æ”¹document.titleçš„æƒ…å†µ  
+                 // hackÔÚÎ¢ĞÅµÈwebviewÖĞÎŞ·¨ĞŞ¸Ädocument.titleµÄÇé¿ö  
                 var $iframe = $('<iframe style="display:none;" src="about:blank" ></iframe>').on('load', function() { 
-                             setTimeout(function() {      
-                                    $iframe.off('load').remove()      }, 0)  
+                             setTimeout(function() {   
+                                       $iframe.off('load').remove()     
+                                     }, 10)  
                              }).appendTo($body);
             }
         },
-        //æ³¨å†Œ
+        //×¢²á
         regRouter : function(path,type){
-            //å›é€€é¦–é¡µé¢
+            //»ØÍËÊ×Ò³Ãæ
             if(path == "index"){
-                if(this._curentHash){ //åˆ·æ–°urlä¸­åŒ…å«hash
+                if(this._curentHash){ //Ë¢ĞÂurlÖĞ°üº¬hash
                    if(path !== this._curentHash){
-                       $.SPA.hashWrite = true;//ä¸è¦è§¦å‘hashchangeä¸­äº‹ä»¶æ¸²æŸ“
+                       myspa.hashWrite = true;//²»Òª´¥·¢hashchangeÖĞÊÂ¼şäÖÈ¾
                    }
                 }
                 
             }else if(type){
                 if(location.hash !== "#"+path){
                     location.hash = "#"+path;
-                    $.SPA.hashWrite = true;
+                    myspa.hashWrite = true;
                 }
             }
         },
      
-        // $.SPA.signLocaton({state:{path:pathName},func:func});
+        // myspa.signLocaton({state:{path:pathName},func:func});
         signLocaton : function(obj){
-            //pathä¸ºå¿…å¡«
+            //pathÎª±ØÌî
             if(! obj.state || ! obj.state.path){
                 throw 'require state.path';
             }
-            $.SPA.pushHash(obj.state.path,obj.type);
-            $.SPA._saveCurentHash();
+            myspa.pushHash(obj.state.path,obj.type);
+            myspa._saveCurentHash();
         },
         pushHash : function(path,type){
-            $.SPA.regRouter(path,type);
+            myspa.regRouter(path,type);
         },
         getLastRunModule:function(){
-            return $.SPA.getRunModule(this._curentHash)
+            return myspa.getRunModule(this._curentHash)
         },
         getRunModule:function(hash){
             hash =  hash || location.hash;
-            var request = $.SPA.getBootRouter(hash.replace("#",""));
+            var request = myspa.getBootRouter(hash.replace("#",""));
             return request;
         },
         //enter fire
@@ -361,35 +279,35 @@ define(function(require,exports,module){
              if($.isFunction(request)){
                   request()
              }else if($.isPlainObject(request)){
-                  $.SPA.innerBoot(request["path"],arg);
+                  myspa.innerBoot(request["path"],arg);
              }
         },
         //outer fier
         outerRun:function(lstRequest,curRequest){
             if($.isPlainObject(lstRequest) || $.isPlainObject(curRequest)){
-                  SPA.emit('beforeclose',lstRequest,curRequest);
-                  SPA.emit('afterclose',lstRequest,curRequest);
+                  myEvent.emit('beforeclose',lstRequest,curRequest);
+                  myEvent.emit('afterclose',lstRequest,curRequest);
             }
         },
         startRun:function(curRequest,arg){
-             var curRequest = curRequest || $.SPA.getRunModule();
-             var lstRequest = $.SPA.getRunModule(this._curentHash);
+             var curRequest = curRequest || myspa.getRunModule();
+             var lstRequest = myspa.getRunModule(this._curentHash);
             
             //value from session
-             arg = arg ? arg:SPA.Store.getItem(qs+"_"+curRequest['script']);
+             arg = arg ? arg:mystore.getItem(qs+"_"+curRequest['script']);
              
-             if(this._curentHash != curRequest.path){//é¿å…é‡å¤è¯·æ±‚
+             if(this._curentHash != curRequest.path){//±ÜÃâÖØ¸´ÇëÇó
                 
                 this.outerRun(lstRequest,curRequest);
                 
-                if($.SPA.isStart){
+                if(myspa.isStart){
                      this._startRouter(curRequest,arg);
                 }
              }
              
-             //ç¬¬ä¸€æ¬¡å¯åŠ¨ï¼Œåˆ·æ–°å¤„ç†
-             if(!$.SPA.isStart){
-                $.SPA.isStart = true;
+             //µÚÒ»´ÎÆô¶¯£¬Ë¢ĞÂ´¦Àí
+             if(!myspa.isStart){
+                myspa.isStart = true;
                 this._startRouter(curRequest,arg);
              }
         },
@@ -400,62 +318,74 @@ define(function(require,exports,module){
                 this.innerRun(curRequest,arg);
              }
         },
-        //åˆåŒ–åŒ–è·¯ç”±
-        // 1,è®¾ç½®å½“å‰urlæ ¹ç›®å½•
+        //³õ»¯»¯Â·ÓÉ
+        // 1,ÉèÖÃµ±Ç°url¸ùÄ¿Â¼
         initRun:function(options,arg){
             options =  options || {};
-            this.rootPath = options.rootPath;
-            this.defaultRouter = options.defaultRouter;
-            //è·¯ç”±å¤„ç†
+           
+            myspa.rootPath = options.rootPath;
+            myspa.defaultRouter = options.defaultRouter;
+            i18n = options.i18n;
+            //Â·ÓÉ´¦Àí
             var matchs = location.search.match(/page=([^&]*)(&|$)/);
                 match = RegExp.$1;
             if(matchs && match){
                 match = match.replace("%2F","/");
                 location.hash = match;
-                this.defaultRouter = match;
-                $.SPA.hashWrite = true;
-            }else if(location.hash){//åˆ·æ–°å¤„ç†
-                this.defaultRouter = location.hash.replace("#","");
+                myspa.defaultRouter = match;
+                myspa.hashWrite = true;
+            }else if(location.hash){//Ë¢ĞÂ´¦Àí
+                myspa.defaultRouter = location.hash.replace("#","");
             }else{
-                location.hash = this.defaultRouter;
-                $.SPA.hashWrite = true;
+                location.hash = myspa.defaultRouter;
+                myspa.hashWrite = true;
             }
-            //æ³¨å†Œå½“å‰è·¯ç”±
-            $.SPA.r({
-               path: this.defaultRouter,//æŒ‚è½½ç‚¹
-               script: this.rootPath+"/"+this.defaultRouter+".js"
+            //×¢²áµ±Ç°Â·ÓÉ
+            myspa.r({
+               path: myspa.defaultRouter,//¹ÒÔØµã
+               script: myspa.rootPath+"/"+myspa.defaultRouter+".js"
             });
-            //åŠ è½½è¿è¡Œ
-            this.startRun();
+            //¼ÓÔØÔËĞĞ
+            myspa.startRun();
             
-            $.SPA.isStart = true;
+            myspa.isStart = true;
         },
-        //è·å–è¦å¯åŠ¨çš„è·¯ç”±
+        //»ñÈ¡ÒªÆô¶¯µÄÂ·ÓÉ
         getBootRouter:function(path){
-            var router = $.SPA.routers[path];
-            if(!router) {//æ³¨å†Œæ–°è·¯ç”±
-                $.SPA.r({
-                   path: path,//æŒ‚è½½ç‚¹
+            var router = myspa.routers[path];
+            if(!router) {//×¢²áĞÂÂ·ÓÉ
+                myspa.r({
+                   path: path,//¹ÒÔØµã
                    script: this.rootPath+"/"+path+".js"
                 });
             }
-            return $.SPA.routers[path];
+            return myspa.routers[path];
         },
         //back request,save before data and excute,mobile refesh can excute onpopstate
         //no support propstate,apply onhashchage
         monitorRouter:function(){
-              //è§£å†³è°ƒå›æ—¶ï¼Œä¸å‘ç”Ÿè§¦å‘
+              //½â¾öµ÷»ØÊ±£¬²»·¢Éú´¥·¢
               this._saveCurentHash();
-              //ç›‘å¬è§¦å‘
+              //¼àÌı´¥·¢
               window.onhashchange = function(){
-                   if($.SPA.hashWrite){//å†™çš„æ“ä½œå¼•èµ·change
-                        $.SPA.hashWrite = false;
-                   }else{//å›é€€çš„æ“ä½œ
-                        $.SPA.startRun();
+                   if(myspa.hashWrite){//Ğ´µÄ²Ù×÷ÒıÆğchange
+                        myspa.hashWrite = false;
+                   }else{//»ØÍËµÄ²Ù×÷
+                        myspa.startRun();
                    }
              };
         }
     });
     
-    $.SPA.monitorRouter();
+    myspa.monitorRouter();
+    
+    module.exports = {
+    	on    : function(){
+                             var arg = Array.prototype.slice.call(arguments);
+                             arg.splice(0,1);
+                             return myEvent.on.apply(myEvent,arg);
+                },
+    	boot  : myspa.boot,
+    	initRun: myspa.initRun
+    }
 });
