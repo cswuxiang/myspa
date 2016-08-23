@@ -87,14 +87,14 @@ myspa
      ```
 
 4. 模块通信
-- 发送页面
+>发送页面
+
      ```
     var  myspa = require("../../myspa.js");
     myspa.boot("detail",{param1:"xxx",param2:"yyy"}
        
-    
      ```
-- 接收页面
+>接收页面
      ```
       var tpl = require("././detail.html");
       var Detail = {
