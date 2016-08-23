@@ -95,6 +95,7 @@ myspa
        
      ```
 >接收页面
+
      ```
       var tpl = require("././detail.html");
       var Detail = {
